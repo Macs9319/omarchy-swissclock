@@ -168,4 +168,4 @@ The design is Hans Hilfiker's, made for the Swiss Federal Railways in 1944 and
 still theirs; this is only a drawing of it. Not affiliated with SBB CFF FFS or
 Mondaine.
 
-MIT.
+MIT — see [LICENSE](LICENSE).
