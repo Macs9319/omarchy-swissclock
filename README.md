@@ -45,10 +45,18 @@ fill the screen. Every dial reads the same instant off one timer. Behind them,
 twenty-four faint bands — one per hour of longitude, which is all the world
 map behind a clock wall was ever really saying.
 
-Bind it to a key:
+Bind it to a key, in `~/.config/hypr/bindings.lua`:
 
+```lua
+o.bind("SUPER + CTRL + ALT + C", "World clock wall", "omarchy-shell ronnie.swissclock toggleWall")
 ```
-bindd = SUPER, W, World clock wall, exec, omarchy-shell ronnie.swissclock toggleWall
+
+That modifier is where Omarchy keeps its other display toggles (`SUPER + CTRL
++ ALT + T` shows the time, `+ W` the weather). Check a combo is free before
+taking it — `SUPER + W`, the obvious one, is already Close window:
+
+```bash
+omarchy menu keybindings --print          # or: hyprctl binds
 ```
 
 ## Install
