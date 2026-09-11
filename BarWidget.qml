@@ -54,9 +54,14 @@ BarWidget {
   readonly property string deltaText: followsLocal
     ? "local time" : Zones.deltaLabel(zoneOffset, localOffset)
 
-  readonly property real faceSize: vertical
-    ? Math.max(14, Math.min(22, Math.round(barSize * 0.74)))
-    : Math.max(14, Math.min(22, Math.round(barSize * 0.72)))
+  // Face size as a percentage of the bar's own height, so it keeps its
+  // proportion on a taller bar or a scaled font instead of being pinned to a
+  // pixel count that only suits one bar.
+  readonly property int faceScale: {
+    var value = Number(setting("faceScale", 72))
+    return isFinite(value) ? Math.max(30, Math.min(100, Math.round(value))) : 72
+  }
+  readonly property real faceSize: Math.max(8, Math.min(barSize, Math.round(barSize * faceScale / 100)))
 
   function applySettings(changes) {
     var entry = { id: root.moduleName }

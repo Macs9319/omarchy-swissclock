@@ -32,6 +32,9 @@ Item {
   // keeps only the twelve hour bars — the same simplification the real clock's
   // small siblings make.
   readonly property bool detailed: diameter >= 44
+  // Smaller than this, twelve bars crowd into a grey ring and the hands lose
+  // against them, so the dial keeps only the quarters.
+  readonly property bool minimal: diameter < 15
   // Supersample the dial and scale it down: bar-sized ticks are fractions of a
   // pixel wide, and this is cheaper than fighting the rasteriser.
   readonly property int sampling: diameter < 64 ? 3 : 2
@@ -53,6 +56,7 @@ Item {
   onRimColorChanged: dial.requestPaint()
   onMarkColorChanged: dial.requestPaint()
   onDetailedChanged: dial.requestPaint()
+  onMinimalChanged: dial.requestPaint()
 
   component Hand: Item {
     id: hand
@@ -120,6 +124,7 @@ Item {
       for (var i = 0; i < 60; i++) {
         var isHour = i % 5 === 0
         if (!isHour && !face.detailed) continue
+        if (face.minimal && i % 15 !== 0) continue
         ctx.save()
         ctx.rotate(i * Math.PI / 30)
         var w = isHour ? hourWidth : minuteWidth

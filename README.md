@@ -76,6 +76,7 @@ Set these in Setup › Plugins, or inline in the widget's `shell.json` entry:
 |---|---|---|
 | `timezone` | `local` | `local` follows this machine's timezone; otherwise an IANA zone |
 | `label` | derived | Display name; defaults to the zone's city (`Zürich`, `São Paulo`) |
+| `faceScale` | `72` | Dial size as a percentage of the bar's height. Below ~55% the dial keeps only the quarter markers |
 | `showLabel` | `true` | Digital time beside the face |
 | `labelFormat` | `HH:mm` | Qt format for that text, e.g. `'Zrh' HH:mm` |
 | `showSeconds` | `true` | The red hand |
