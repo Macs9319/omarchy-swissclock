@@ -142,13 +142,28 @@ function stepZone(list, tz, direction) {
   return list[next].tz
 }
 
-// "+0530" -> 330, "-0430" -> -270. Anything else is unknown, not zero: a bad
-// zone name must not quietly render as UTC.
-function parseOffsetMinutes(text) {
-  var match = /^([+-])(\d{2})(\d{2})$/.exec(String(text || "").trim())
-  if (!match) return NaN
-  var minutes = parseInt(match[2], 10) * 60 + parseInt(match[3], 10)
-  return match[1] === "-" ? -minutes : minutes
+var MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+               Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 }
+var ZDUMP_LINE = /^(\S+)\s+[A-Za-z]{3}\s+([A-Za-z]{3})\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})\s+(\d{4})(?:\s+(\S+))?\s*$/
+// No real zone is further out than this; a line claiming otherwise is a
+// wedged clock or a binary that is not zdump, and is refused either way.
+var MAX_OFFSET_MINUTES = 16 * 60
+
+// zdump prints the wall clock in a zone, not its offset:
+//   Europe/Zurich  Fri Sep 11 11:04:09 2026 CEST
+// The offset is that reading taken as if it were UTC, minus now. Rounding to
+// the minute absorbs the fraction of a second between the two readings.
+function parseZdumpLine(line, nowMs) {
+  var match = ZDUMP_LINE.exec(String(line || "").trim())
+  if (!match) return null
+  var month = MONTHS[match[2]]
+  if (month === undefined) return null
+  if (!isValidZone(match[1])) return null
+  var asUtc = Date.UTC(parseInt(match[7], 10), month, parseInt(match[3], 10),
+                       parseInt(match[4], 10), parseInt(match[5], 10), parseInt(match[6], 10))
+  var minutes = Math.round((asUtc - (nowMs === undefined ? Date.now() : nowMs)) / 60000)
+  if (!isFinite(minutes) || Math.abs(minutes) > MAX_OFFSET_MINUTES) return null
+  return { tz: match[1], minutes: minutes, abbr: match[8] ? String(match[8]) : "" }
 }
 
 function offsetOf(map, tz) {

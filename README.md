@@ -69,9 +69,9 @@ omarchy bar move ronnie.swissclock --before omarchy.clock
 ```
 
 Needs Omarchy's Quickshell shell (`omarchy-shell`) — plugin `schemaVersion 1`.
-Nothing else: timezones come from `date` (coreutils, already on the system)
-and the dial is drawn in QML. No network, no daemon, no files outside the
-plugin's own directory.
+Nothing else: offsets come from `zdump`, which ships in the same `tzdata`
+package as the zone database it reads, and the dial is drawn in QML. No
+network, no daemon, no files outside the plugin's own directory.
 
 ### Removing it
 
@@ -138,9 +138,10 @@ omarchy-shell ronnie.swissclock toggleWall   # the wall; also wall / closeWall
 
 ## How it works
 
-**Timezones.** QML has no timezone database, so offsets come from `date`
-itself: one short `bash` call a minute resolves every zone the widget and its
-panel are showing, and the clock is drawn from `now + offset`. Asking every
+**Timezones.** QML has no timezone database, so offsets come from `zdump`:
+one call a minute resolves every zone the widget and its panel are showing —
+`zdump` prints the wall clock in each, and the offset is that reading taken as
+UTC, minus now — and the clock is drawn from `now + offset`. Asking every
 minute is what keeps a DST changeover from lingering — a zone that springs
 forward is wrong for at most a minute. Offsets that are not whole hours work
 the same way (Mumbai at `-2:30` above, Chatham at `+12:45`). A zone name that
@@ -162,8 +163,14 @@ you should read any plugin before enabling it.
 - **No network.** Nothing here opens a socket; offsets come from the local
   timezone database.
 - **One subprocess a minute**, and only while something is on screen: a
-  short-lived `bash` that runs `date` once per zone. The wall stops polling
-  when it is dismissed.
+  single `/usr/bin/zdump`, no shell. The wall stops polling when dismissed.
+- **Absolute paths and a cleared environment.** The child inherits nothing —
+  no `PATH`, no `LD_PRELOAD` — so a shadowed binary cannot take over a
+  process that repeats every minute inside a session-long shell.
+- **A hard deadline and an output cap.** The probe is SIGKILLed after 5s or
+  32KB, so a wedged or substituted binary costs one dropped refresh rather
+  than a hung resolver or a growing shell. With no shell there is a single
+  child to kill, not a tree.
 - **Writes one thing**: this widget's own entry under `bar.layout` in
   `shell.json`, through the shell's own settings API, and only when you pick a
   location. No other file is touched.
@@ -183,7 +190,7 @@ BarWidget.qml   the bar face, its gestures, and the IPC surface
 Panel.qml       the popup: big face and location list
 Wall.qml        the fullscreen overlay: every location at once
 ClockFace.qml   the clock itself, reused at both sizes
-Offsets.qml     zone name -> UTC offset, via `date`
+Offsets.qml     zone name -> UTC offset, via `zdump`
 Zones.js        zone list parsing, offset math, the stop-to-go angle
 ```
 
