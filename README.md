@@ -3,16 +3,13 @@
 Hans Hilfiker's 1944 Bahnhofsuhr as an [Omarchy](https://omarchy.org) bar
 widget — a station clock that can be pointed at another place.
 
-![the widget in the bar, showing Zürich next to the local clock](docs/bar.png)
+![Omarchy Swiss Clock — the wall of city clocks and the location panel](preview.png)
 
 Out of the box it shows **your own time**, whatever this machine's timezone
 is. Point it somewhere else and it stays there: an office in another country,
-a market open, someone you keep calling. Above, it is set to Zürich (09:48)
-while the bar's own clock reads 3:48 PM local.
+a market open, someone you keep calling.
 
 ## What it draws
-
-<img src="docs/panel.png" alt="the panel: big face, date, and the location list" align="right" width="330">
 
 - The SBB dial — white face, black bezel, twelve bar markers, and sixty
   minute ticks once the face is big enough to carry them.
@@ -29,15 +26,11 @@ Left click opens the panel: the same clock drawn big, the date there, how far
 ahead or behind you it runs, and every location you can send it to with the
 time in each.
 
-<br clear="all">
-
 ## The wall
 
 Middle-click the widget (or press `w` in the panel) for every location at
 once, the way a newsroom hangs them — red bezels, city plates, and the offset
 from you under each dial. `Esc`, a click, or middle-click again dismisses it.
-
-![the clock wall](docs/wall.png)
 
 Columns are chosen by trying every split and keeping the one that makes the
 faces biggest, so a wall of five and a wall of thirteen are both laid out to
