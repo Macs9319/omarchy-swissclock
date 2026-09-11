@@ -1,50 +1,72 @@
 # Swiss Railway Clock
 
-Hans Hilfiker's 1944 Bahnhofsuhr as an Omarchy bar widget — set to a place
-you are not in.
+Hans Hilfiker's 1944 Bahnhofsuhr as an [Omarchy](https://omarchy.org) bar
+widget — a station clock that can be pointed at another place.
 
-Out of the box it shows **your own time** — whatever this machine's timezone
-is — so it is a station clock first and a world clock only if you ask. Point
-it somewhere else and it stays there: an office in another country, a market
-open, someone you call.
+![the widget in the bar, showing Zürich next to the local clock](docs/bar.png)
 
-Because `timezone` stores `local` rather than the resolved zone name, a clock
-left on local keeps following the system timezone if that later changes (a
-laptop that travels, a `timedatectl set-timezone`).
-
-![the widget in the bar](preview.png)
+Out of the box it shows **your own time**, whatever this machine's timezone
+is. Point it somewhere else and it stays there: an office in another country,
+a market open, someone you keep calling. Above, it is set to Zürich (09:48)
+while the bar's own clock reads 3:48 PM local.
 
 ## What it draws
 
-- The SBB dial: white face, black bezel, twelve bar markers with sixty minute
-  ticks once the face is big enough to carry them.
-- Blunt black hands. The minute hand does not creep — it is held and then
-  snaps, the way a slave clock waits for the master clock's minute impulse.
-- The red paddle second hand, in **stop-to-go**: it sweeps a full turn in
-  58.5 seconds, then waits at 12 for the next minute. That pause is the whole
-  character of the design, so it is on by default.
+<img src="docs/panel.png" alt="the panel: big face, date, and the location list" align="right" width="330">
 
-At bar size the face drops the minute ticks and thickens the hands, the same
+- The SBB dial — white face, black bezel, twelve bar markers, and sixty
+  minute ticks once the face is big enough to carry them.
+- Blunt black hands. The minute hand does not creep: it is held and then
+  snaps, the way a slave clock waits for the master clock's impulse.
+- The red paddle second hand in **stop-to-go** — a full turn in 58.5 seconds,
+  then a wait at 12 for the next minute. That pause is the character of the
+  design, so it is the default.
+
+At bar size the face drops its minute ticks and thickens its hands, the same
 trade the small platform clocks make against the big concourse ones.
 
-## Interactions
+Left click opens the panel: the same clock drawn big, the date there, how far
+ahead or behind you it runs, and every location you can send it to with the
+time in each.
+
+<br clear="all">
+
+## Install
+
+```bash
+omarchy plugin add <this-repo-url> --enable --yes
+omarchy bar move ronnie.swissclock --before omarchy.clock
+```
+
+Or by hand, without git:
+
+```bash
+cp -r . ~/.config/omarchy/plugins/ronnie.swissclock
+omarchy-shell shell rescanPlugins
+omarchy plugin enable ronnie.swissclock
+omarchy bar move ronnie.swissclock --before omarchy.clock
+```
+
+Needs Omarchy's Quickshell shell (`omarchy-shell`) — plugin `schemaVersion 1`.
+Nothing else: timezones come from `date` and the dial is drawn in QML.
+
+## Using it
 
 | Gesture | Effect |
 |---|---|
-| left click | panel: the big face, the date, and the location list |
-| right click | next location in the list |
+| left click | the panel — big face, date, and the location list |
+| right click | next location |
 | middle click | show/hide the digital time beside the face |
 | scroll | previous / next location |
 
-In the panel, `↑`/`↓` (or `k`/`j`) move and `Enter` picks a location;
-`Esc` closes. Picking a location writes it to `shell.json`, so it survives
-restarts. The first row is always where you actually are, marked `(local)`,
-so going back to your own time is one click rather than a timezone you have
-to remember the name of.
+In the panel, `↑`/`↓` (or `k`/`j`) move and `Enter` picks; `Esc` closes. The
+first row is always where you actually are, marked `(local)`, so coming back
+to your own time is one click rather than a timezone you have to remember the
+name of. A pick is written to `shell.json` and survives restarts.
 
 ## Settings
 
-Set these in Setup > Plugins, or inline in the widget's `shell.json` entry:
+Set these in Setup › Plugins, or inline in the widget's `shell.json` entry:
 
 ```json
 { "id": "ronnie.swissclock", "timezone": "Asia/Tokyo", "label": "Tokyo", "labelFormat": "HH:mm" }
@@ -59,7 +81,11 @@ Set these in Setup > Plugins, or inline in the widget's `shell.json` entry:
 | `showSeconds` | `true` | The red hand |
 | `stopToGo` | `true` | Off gives a plain 60s sweep |
 | `dial` | `classic` | `classic` is the white SBB dial; `theme` paints it in your bar's colors |
-| `zones` | built-in list | `Europe/Zurich=Zürich, Asia/Tokyo` — the list the panel shows and right-click cycles. The local row is always added on top |
+| `zones` | built-in list | `Europe/Zurich=Zürich, Asia/Tokyo` — what the panel lists and right-click cycles. The local row is always added on top |
+
+Because `timezone` stores the sentinel `local` rather than a resolved zone
+name, a clock left on local keeps following the system timezone if that later
+changes — a laptop that travels, a `timedatectl set-timezone`.
 
 ## IPC
 
@@ -67,30 +93,46 @@ Set these in Setup > Plugins, or inline in the widget's `shell.json` entry:
 omarchy-shell ronnie.swissclock toggle
 omarchy-shell ronnie.swissclock setZone America/New_York
 omarchy-shell ronnie.swissclock useLocal     # back to the system timezone
-omarchy-shell ronnie.swissclock next        # also: previous
-omarchy-shell ronnie.swissclock zone        # prints zone + its current time
+omarchy-shell ronnie.swissclock next         # also: previous
+omarchy-shell ronnie.swissclock zone         # prints the zone and its current time
 ```
 
-## How the timezone works
+## How it works
 
-QML has no timezone database, so offsets come from `date` itself: one short
-`bash` call per minute resolves every zone the widget and its panel are
-showing, and the clock is drawn from `now + offset`. Asking every minute is
-what keeps a DST changeover from lingering — a zone that springs forward is
-wrong for at most a minute. A zone name that `/usr/share/zoneinfo` does not
-know stays visibly unresolved (`—`) instead of quietly rendering as UTC.
+**Timezones.** QML has no timezone database, so offsets come from `date`
+itself: one short `bash` call a minute resolves every zone the widget and its
+panel are showing, and the clock is drawn from `now + offset`. Asking every
+minute is what keeps a DST changeover from lingering — a zone that springs
+forward is wrong for at most a minute. Offsets that are not whole hours work
+the same way (Mumbai at `-2:30` above, Chatham at `+12:45`). A zone name that
+`/usr/share/zoneinfo` does not know stays visibly unresolved (`—`) instead of
+quietly rendering as UTC.
 
-## Hacking on it
+**Drawing.** The dial is a supersampled `Canvas` painted once per size and
+colour change; the hands are rotated rectangles. So the sweeping second hand
+costs a transform per frame and never a repaint — this thing ticks all day in
+a bar. The sweep itself runs at 25fps, which is plenty for a hand this slow
+and keeps the widget off the 60fps treadmill.
 
-Saving a file here reloads the plugin, but the panel and the shared JS are
-cached by the running shell — if an edit does not show up, run
-`omarchy restart shell`.
+## Repo layout
 
 ```
-manifest.json   plugin + settings schema
+manifest.json   plugin declaration + settings schema
 BarWidget.qml   the bar face, its gestures, and the IPC surface
 Panel.qml       the popup: big face and location list
 ClockFace.qml   the clock itself, reused at both sizes
 Offsets.qml     zone name -> UTC offset, via `date`
 Zones.js        zone list parsing, offset math, the stop-to-go angle
 ```
+
+Saving a file under `~/.config/omarchy/plugins/` reloads the plugin, but the
+running shell caches the panel QML and the shared JS — if an edit does not
+show up, `omarchy restart shell`.
+
+## Credits
+
+The design is Hans Hilfiker's, made for the Swiss Federal Railways in 1944 and
+still theirs; this is only a drawing of it. Not affiliated with SBB CFF FFS or
+Mondaine.
+
+MIT.

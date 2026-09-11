@@ -50,7 +50,9 @@ BarWidget {
 
   readonly property date zoneTime: Zones.zoneDate(zoneOffset, clock.date.getTime())
   readonly property string labelText: Qt.formatDateTime(zoneTime, labelFormat)
-  readonly property string deltaText: Zones.deltaLabel(zoneOffset, localOffset)
+  // Following local, "same as your time" is a tautology — say what it is.
+  readonly property string deltaText: followsLocal
+    ? "local time" : Zones.deltaLabel(zoneOffset, localOffset)
 
   readonly property real faceSize: vertical
     ? Math.max(14, Math.min(22, Math.round(barSize * 0.74)))
