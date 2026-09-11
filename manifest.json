@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "ronnie.swissclock",
+  "name": "Swiss Railway Clock",
+  "version": "1.0.0",
+  "author": "ronnie",
+  "license": "MIT",
+  "description": "Hans Hilfiker's Swiss station clock in the bar, set to a location you are not in",
+  "kinds": ["bar-widget"],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Swiss Railway Clock",
+    "description": "Analog Swiss station clock showing another location's time",
+    "category": "Time",
+    "aliases": ["swissclock", "swiss-clock", "bahnhofsuhr"],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "timezone": "local",
+      "label": "",
+      "showLabel": true,
+      "labelFormat": "HH:mm",
+      "showSeconds": true,
+      "stopToGo": true,
+      "dial": "classic",
+      "zones": ""
+    },
+    "schema": [
+      { "key": "timezone", "type": "string", "label": "Location", "defaultValue": "local", "description": "local follows this machine's own timezone (the default). Otherwise an IANA zone, such as Europe/Zurich or America/New_York." },
+      { "key": "label", "type": "string", "label": "Location name", "defaultValue": "", "description": "Optional. Defaults to the timezone's own city name." },
+      { "key": "showLabel", "type": "boolean", "label": "Show the time beside the face", "defaultValue": true },
+      { "key": "labelFormat", "type": "string", "label": "Time format", "defaultValue": "HH:mm", "description": "Qt date/time format for the text beside the face, e.g. HH:mm or 'Zrh' HH:mm." },
+      { "key": "showSeconds", "type": "boolean", "label": "Red second hand", "defaultValue": true },
+      { "key": "stopToGo", "type": "boolean", "label": "Stop-to-go seconds", "defaultValue": true, "description": "The original movement: the second hand sweeps in 58.5s, then waits at 12 for the minute impulse." },
+      { "key": "dial", "type": "enum", "label": "Dial", "options": ["classic", "theme"], "defaultValue": "classic", "description": "classic is the white SBB dial; theme paints the face in your bar's own colors." },
+      { "key": "zones", "type": "string", "label": "Locations", "defaultValue": "", "description": "Comma-separated list for the panel and for cycling, e.g. Europe/Zurich=Zürich, Asia/Tokyo. Empty uses a built-in world list." }
+    ]
+  }
+}
