@@ -36,10 +36,12 @@ Item {
     var list = []
     for (var i = 0; i < (zones || []).length; i++) {
       var tz = String(zones[i] || "").trim()
-      // A zone name reaches this line straight from shell.json, so it goes to
-      // the shell as an argv entry and is only ever used as a path suffix and
-      // a TZ value — never spliced into the script text.
-      if (tz === "" || seen[tz] || tz.indexOf("\n") >= 0) continue
+      // Zone names go to the shell as argv entries and are never spliced into
+      // the script text, so the quoting is not what is at stake here: the
+      // check is so that a name which is not a zone never reaches `[ -e ]` or
+      // `TZ=` at all. Last line of defence — callers validate too.
+      if (seen[tz] || !Zones.isValidZone(tz)) continue
+      if (list.length >= Zones.MAX_ZONES) break
       seen[tz] = true
       list.push(tz)
     }

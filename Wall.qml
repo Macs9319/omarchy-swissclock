@@ -75,8 +75,25 @@ Item {
     if (typeof payload.stopToGo === "boolean") root.stopToGo = payload.stopToGo
     if (typeof payload.classicDial === "boolean") root.classicDial = payload.classicDial
     if (typeof payload.rim === "string" && payload.rim !== "") root.rimStyle = payload.rim
-    root.zones = Array.isArray(payload.zones) && payload.zones.length > 0
-      ? payload.zones : Zones.parseZoneSetting("", root.localZone, "", "")
+    root.zones = sanitizeZones(payload.zones)
+  }
+
+  // The payload arrives over the shell's IPC, so it is only as trustworthy as
+  // anything else running as this user — but a wall of ten thousand dials is
+  // a frozen session, and a name that is not a zone has no business reaching
+  // the probe. Both are cheap to refuse.
+  function sanitizeZones(raw) {
+    if (!Array.isArray(raw) || raw.length === 0)
+      return Zones.parseZoneSetting("", root.localZone, "", "")
+    var out = []
+    for (var i = 0; i < raw.length && out.length < Zones.MAX_ZONES; i++) {
+      var entry = raw[i]
+      if (!entry) continue
+      var tz = String(entry.tz || "")
+      if (!Zones.isLocalZone(tz) && !Zones.isValidZone(tz)) continue
+      out.push({ tz: tz, label: Zones.clampLabel(entry.label) })
+    }
+    return out.length > 0 ? out : Zones.parseZoneSetting("", root.localZone, "", "")
   }
 
   // Columns are chosen by trying every split and keeping the one that makes

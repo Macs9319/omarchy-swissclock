@@ -82,6 +82,9 @@ BarWidget {
     var next = String(tz || "").trim()
     var local = Zones.isLocalZone(next)
     if (local) next = "local"
+    // The IPC surface reaches this too, so a name that is not a zone is
+    // refused here and never written to shell.json.
+    if (!local && !Zones.isValidZone(next)) return
     if (next === root.timezoneSetting) return
     // The local row's label is generated from whatever the system zone is
     // right now; storing it would freeze the name if that ever changed.

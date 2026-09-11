@@ -29,6 +29,30 @@ var DEFAULT_ZONES = [
 
 // "Europe/Zurich" -> "Zurich", "America/New_York" -> "New York". A label set
 // in shell.json always wins, so "Zürich" survives round-tripping.
+// A zone name is a path under /usr/share/zoneinfo, so it holds letters,
+// digits, _ + - . and separators, and nothing else. Names arrive from
+// shell.json and over IPC, and while they are passed to the probe as argv
+// (never spliced into the script), an unchecked name still reaches `[ -e ]`
+// and `TZ=` — enough to make the widget a file-existence oracle, and enough
+// for "../../../etc/passwd" to quietly render as UTC instead of unresolved.
+var ZONE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_+.\-]*(\/[A-Za-z0-9_+.\-]+)*$/
+// Each zone in the list costs two short-lived processes a minute; a list this
+// long is already unreadable, so the cap is a comfort rather than a limit.
+var MAX_ZONES = 64
+var MAX_LABEL = 64
+
+function isValidZone(tz) {
+  var value = String(tz || "").trim()
+  if (value === "" || value.length > 120) return false
+  if (value.indexOf("..") >= 0) return false
+  return ZONE_PATTERN.test(value)
+}
+
+function clampLabel(text) {
+  var value = String(text || "").trim()
+  return value.length > MAX_LABEL ? value.slice(0, MAX_LABEL) : value
+}
+
 function isLocalZone(tz) {
   var value = String(tz || "").trim().toLowerCase()
   return value === "" || value === LOCAL || value === "system"
@@ -76,7 +100,11 @@ function parseZoneSetting(raw, localZone, extraTz, extraLabel) {
       var tz = (eq < 0 ? item : item.slice(0, eq)).trim()
       // A hand-written "local" entry is dropped: the row below already is it.
       if (tz === "" || isLocalZone(tz)) continue
-      list.push({ tz: tz, label: labelFor(tz, eq < 0 ? "" : item.slice(eq + 1)) })
+      // A malformed name is dropped rather than shown unresolved: it can only
+      // have come from hand-editing, and nothing good is downstream of it.
+      if (!isValidZone(tz)) continue
+      if (list.length >= MAX_ZONES) break
+      list.push({ tz: tz, label: clampLabel(labelFor(tz, eq < 0 ? "" : item.slice(eq + 1))) })
     }
   }
 

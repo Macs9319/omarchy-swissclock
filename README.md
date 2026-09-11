@@ -153,6 +153,28 @@ costs a transform per frame and never a repaint — this thing ticks all day in
 a bar. The sweep itself runs at 25fps, which is plenty for a hand this slow
 and keeps the widget off the 60fps treadmill.
 
+## What it can do to your machine
+
+Worth stating plainly, since an Omarchy plugin runs unsandboxed inside
+`omarchy-shell` — that is true of every plugin, this one included, and is why
+you should read any plugin before enabling it.
+
+- **No network.** Nothing here opens a socket; offsets come from the local
+  timezone database.
+- **One subprocess a minute**, and only while something is on screen: a
+  short-lived `bash` that runs `date` once per zone. The wall stops polling
+  when it is dismissed.
+- **Writes one thing**: this widget's own entry under `bar.layout` in
+  `shell.json`, through the shell's own settings API, and only when you pick a
+  location. No other file is touched.
+- **Zone names are validated** before they reach a subprocess — letters,
+  digits, `_ + - .` and `/`, no `..`. Names are passed as arguments and never
+  spliced into a command, so shell metacharacters in a hand-edited
+  `shell.json` are inert rather than clever.
+- **The wall takes keyboard focus while open**, like any fullscreen overlay.
+  `Esc`, a click, the keybinding, or `omarchy-shell ronnie.swissclock
+  closeWall` all dismiss it.
+
 ## Repo layout
 
 ```
