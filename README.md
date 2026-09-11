@@ -69,7 +69,21 @@ omarchy bar move ronnie.swissclock --before omarchy.clock
 ```
 
 Needs Omarchy's Quickshell shell (`omarchy-shell`) — plugin `schemaVersion 1`.
-Nothing else: timezones come from `date` and the dial is drawn in QML.
+Nothing else: timezones come from `date` (coreutils, already on the system)
+and the dial is drawn in QML. No network, no daemon, no files outside the
+plugin's own directory.
+
+### Removing it
+
+```bash
+omarchy plugin remove ronnie.swissclock --yes
+```
+
+That takes the widget out of the bar and deletes the plugin directory. The
+only other trace is this widget's own entry under `bar.layout` in
+`~/.config/omarchy/shell.json`, which `remove` clears; nothing else in your
+config is touched. If you added the keybinding by hand, drop that line from
+`~/.config/hypr/bindings.lua` too.
 
 ## Using it
 
