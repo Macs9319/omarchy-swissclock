@@ -71,6 +71,12 @@ Panel {
     cursorIndex = Math.max(0, Math.min(zoneList.length - 1, cursorIndex + delta))
   }
 
+  function openWall() {
+    if (!hostWidget || typeof hostWidget.openWall !== "function") return
+    close()
+    hostWidget.openWall()
+  }
+
   function chooseZone(zone) {
     if (!zone || !hostWidget) return
     hostWidget.selectZone(zone.tz, zone.label)
@@ -115,6 +121,7 @@ Panel {
       onActivateRequested: root.activateCursor()
       onReturnRequested: root.activateCursor()
       onCloseRequested: root.close()
+      onTextKey: function(text) { if (text === "w") root.openWall() }
       onTabRequested: function(direction) { root.switchPanel(direction) }
 
       Flickable {
@@ -235,10 +242,40 @@ Panel {
             }
           }
 
+          PanelSeparator { foreground: root.foreground }
+
+          // The wall is worth a door of its own: nobody guesses that a middle
+          // click on a 16px clock opens a fullscreen one.
+          CursorSurface {
+            id: wallRow
+            width: parent.width
+            height: wallLabel.implicitHeight + Style.spacing.lg
+            hasCursor: wallHover.containsMouse
+            foreground: root.foreground
+
+            Text {
+              id: wallLabel
+              textFormat: Text.PlainText
+              anchors.centerIn: parent
+              text: "Open the clock wall"
+              color: root.foreground
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.body
+            }
+
+            MouseArea {
+              id: wallHover
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: root.openWall()
+            }
+          }
+
           Text {
             textFormat: Text.PlainText
             width: parent.width
-            text: "Right-click or scroll the bar clock to cycle locations · middle-click hides the time"
+            text: "Right-click or scroll the bar clock to cycle locations · middle-click opens the wall · w from here"
             color: root.dim
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption

@@ -31,6 +31,26 @@ time in each.
 
 <br clear="all">
 
+## The wall
+
+Middle-click the widget (or press `w` in the panel) for every location at
+once, the way a newsroom hangs them — red bezels, city plates, and the offset
+from you under each dial. `Esc`, a click, or middle-click again dismisses it.
+
+![the clock wall](docs/wall.png)
+
+Columns are chosen by trying every split and keeping the one that makes the
+faces biggest, so a wall of five and a wall of thirteen are both laid out to
+fill the screen. Every dial reads the same instant off one timer. Behind them,
+twenty-four faint bands — one per hour of longitude, which is all the world
+map behind a clock wall was ever really saying.
+
+Bind it to a key:
+
+```
+bindd = SUPER, W, World clock wall, exec, omarchy-shell ronnie.swissclock toggleWall
+```
+
 ## Install
 
 ```bash
@@ -56,10 +76,11 @@ Nothing else: timezones come from `date` and the dial is drawn in QML.
 |---|---|
 | left click | the panel — big face, date, and the location list |
 | right click | next location |
-| middle click | show/hide the digital time beside the face |
+| middle click | the fullscreen clock wall |
 | scroll | previous / next location |
 
-In the panel, `↑`/`↓` (or `k`/`j`) move and `Enter` picks; `Esc` closes. The
+In the panel, `↑`/`↓` (or `k`/`j`) move and `Enter` picks, `w` opens the wall,
+`Esc` closes. The
 first row is always where you actually are, marked `(local)`, so coming back
 to your own time is one click rather than a timezone you have to remember the
 name of. A pick is written to `shell.json` and survives restarts.
@@ -77,11 +98,12 @@ Set these in Setup › Plugins, or inline in the widget's `shell.json` entry:
 | `timezone` | `local` | `local` follows this machine's timezone; otherwise an IANA zone |
 | `label` | derived | Display name; defaults to the zone's city (`Zürich`, `São Paulo`) |
 | `faceScale` | `72` | Dial size as a percentage of the bar's height. Below ~55% the dial keeps only the quarter markers |
-| `showLabel` | `true` | Digital time beside the face |
 | `labelFormat` | `HH:mm` | Qt format for that text, e.g. `'Zrh' HH:mm` |
 | `showSeconds` | `true` | The red hand |
 | `stopToGo` | `true` | Off gives a plain 60s sweep |
 | `dial` | `classic` | `classic` is the white SBB dial; `theme` paints it in your bar's colors |
+| `wallRim` | `red` | Bezel on the wall's clocks: `red`, `black`, or `theme` |
+| `showLabel` | `true` | Digital time beside the face — the setting the middle click used to toggle |
 | `zones` | built-in list | `Europe/Zurich=Zürich, Asia/Tokyo` — what the panel lists and right-click cycles. The local row is always added on top |
 
 Because `timezone` stores the sentinel `local` rather than a resolved zone
@@ -96,6 +118,7 @@ omarchy-shell ronnie.swissclock setZone America/New_York
 omarchy-shell ronnie.swissclock useLocal     # back to the system timezone
 omarchy-shell ronnie.swissclock next         # also: previous
 omarchy-shell ronnie.swissclock zone         # prints the zone and its current time
+omarchy-shell ronnie.swissclock toggleWall   # the wall; also wall / closeWall
 ```
 
 ## How it works
@@ -121,6 +144,7 @@ and keeps the widget off the 60fps treadmill.
 manifest.json   plugin declaration + settings schema
 BarWidget.qml   the bar face, its gestures, and the IPC surface
 Panel.qml       the popup: big face and location list
+Wall.qml        the fullscreen overlay: every location at once
 ClockFace.qml   the clock itself, reused at both sizes
 Offsets.qml     zone name -> UTC offset, via `date`
 Zones.js        zone list parsing, offset math, the stop-to-go angle

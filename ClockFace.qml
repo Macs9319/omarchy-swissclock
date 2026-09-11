@@ -26,6 +26,10 @@ Item {
   property color handColor: "#000000"
   // Pantone 485, the red SBB has used on the paddle since the beginning.
   property color secondColor: "#da291c"
+  // A centre cap over the hands. The real Bahnhofsuhr has none — the paddle
+  // hand's tail covers the pivot — but a wall of them reads better with one,
+  // so it is opt-in rather than drawn by default.
+  property color hubColor: "transparent"
 
   readonly property real radius: diameter / 2
   // Sixty ticks at bar size would be a grey smudge, so below ~44px the dial
@@ -187,6 +191,17 @@ Item {
       color: face.secondColor
       antialiasing: true
     }
+  }
+
+  Rectangle {
+    readonly property real hubRadius: Math.max(1.5, face.radius * 0.055)
+    visible: face.hubColor.a > 0
+    width: hubRadius * 2
+    height: width
+    radius: hubRadius
+    anchors.centerIn: parent
+    color: face.hubColor
+    antialiasing: true
   }
 
   // 25fps is enough for a sweep this slow to read as continuous, and it keeps

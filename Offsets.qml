@@ -16,6 +16,8 @@ Item {
   property var map: ({})
   property string localZone: ""
   property int refreshIntervalMs: 60000
+  // A wall that is not on screen has nothing to keep fresh.
+  property bool active: true
 
   // Re-asking every minute is what keeps a DST changeover from lingering: a
   // zone that springs forward is wrong for at most one minute, and one short
@@ -92,9 +94,11 @@ Item {
   Timer {
     interval: root.refreshIntervalMs
     repeat: true
-    running: true
+    running: root.active
     onTriggered: root.refresh()
   }
+
+  onActiveChanged: if (active) refresh()
 
   Process {
     id: probe

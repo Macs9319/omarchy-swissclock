@@ -94,6 +94,36 @@ BarWidget {
     selectZone(next, at >= 0 ? root.zoneList[at].label : "")
   }
 
+  // The wall is the plugin's own overlay entry point, so summoning it is a
+  // summon of this same plugin id. The payload carries what the bar is
+  // already showing, so the wall never disagrees with the widget beside it.
+  function wallPayload() {
+    return JSON.stringify({
+      zones: root.zoneList,
+      showSeconds: root.showSeconds,
+      stopToGo: root.stopToGo,
+      classicDial: root.classicDial,
+      rim: String(setting("wallRim", "red"))
+    })
+  }
+
+  function openWall() {
+    if (root.bar && root.bar.shell && typeof root.bar.shell.summon === "function")
+      root.bar.shell.summon(root.moduleName, root.wallPayload())
+  }
+
+  function closeWall() {
+    if (root.bar && root.bar.shell && typeof root.bar.shell.hide === "function")
+      root.bar.shell.hide(root.moduleName)
+  }
+
+  function toggleWall() {
+    if (!root.bar || !root.bar.shell) return
+    if (typeof root.bar.shell.isPluginOpen === "function"
+        && root.bar.shell.isPluginOpen(root.moduleName)) root.closeWall()
+    else root.openWall()
+  }
+
   function toggleLabel() {
     applySettings({ showLabel: !root.showLabel })
   }
@@ -176,6 +206,9 @@ BarWidget {
     function previous(): void { root.cycleZone(-1) }
     function setZone(zone: string): void { root.selectZone(zone, "") }
     function useLocal(): void { root.selectZone("local", "") }
+    function wall(): void { root.openWall() }
+    function closeWall(): void { root.closeWall() }
+    function toggleWall(): void { root.toggleWall() }
     function zone(): string { return root.timezone + " " + Qt.formatDateTime(root.zoneTime, "yyyy-MM-dd HH:mm:ss") }
   }
 
@@ -195,7 +228,7 @@ BarWidget {
 
     onPressed: function(b) {
       if (b === Qt.RightButton) root.cycleZone(1)
-      else if (b === Qt.MiddleButton) root.toggleLabel()
+      else if (b === Qt.MiddleButton) root.toggleWall()
       else root.togglePanel()
     }
 
